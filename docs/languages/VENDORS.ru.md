@@ -299,9 +299,12 @@ ORDER BY p.nickname, s.sponsor_id;
 | `Config/settings.json` | 13 — 17 | Добавлен блок `sponsors` |
 | `Config.cs` | 113, 123 | Свойство `Sponsors` и класс `SponsorsConfig` |
 | `Game/Profile.cs` | 453 | Метод `SponsorsSerialize()`, выбирающий между «открыть всё» и чтением из базы |
-| `Game/Profile.cs` | 598 — 601 | Три `INSERT` для нового профиля используют `starting_points` |
+| `Game/Profile.cs` | 530 | `AddSponsorPoints()`, начисляет очки, заработанные в матче |
+| `Game/Profile.cs` | 618 — 621 | Три `INSERT` для нового профиля используют `starting_points` |
 | `Xmpp/Query/JoinChannel.cs` | 53 | Пять зашитых строк заменены одним вызовом метода |
 | `Xmpp/Query/CreateProfile.cs` | 70 | Та же замена |
+| `Xmpp/Query/SetRewardsInfo.cs` | 324 | Начисляет очки в профиль по итогам матча |
+| `Xmpp/Query/SetRewardsInfo.cs` | 344 | Отправляет клиенту вычисленное значение вместо жёсткого нуля |
 | `emuwarface.sql` | 289 | `sponsor_points` расширен с `tinyint` до `int unsigned` |
 
 <details>

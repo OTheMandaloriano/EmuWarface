@@ -299,9 +299,12 @@ All under `EmuWarface/`:
 | `Config/settings.json` | 13 to 17 | `sponsors` block added |
 | `Config.cs` | 113, 123 | `Sponsors` property and `SponsorsConfig` class |
 | `Game/Profile.cs` | 453 | `SponsorsSerialize()` method, choosing between unlock-all and reading the database |
-| `Game/Profile.cs` | 598 to 601 | The three new-profile `INSERT` statements now use `starting_points` |
+| `Game/Profile.cs` | 530 | `AddSponsorPoints()`, which credits the points earned in a match |
+| `Game/Profile.cs` | 618 to 621 | The three new-profile `INSERT` statements now use `starting_points` |
 | `Xmpp/Query/JoinChannel.cs` | 53 | Five hardcoded lines replaced by one method call |
 | `Xmpp/Query/CreateProfile.cs` | 70 | Same replacement |
+| `Xmpp/Query/SetRewardsInfo.cs` | 324 | Credits the points to the profile at the end of the match |
+| `Xmpp/Query/SetRewardsInfo.cs` | 344 | Sends the calculated value to the client, instead of the hardcoded zero |
 | `emuwarface.sql` | 289 | `sponsor_points` widened from `tinyint` to `int unsigned` |
 
 <details>
