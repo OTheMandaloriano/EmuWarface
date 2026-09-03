@@ -317,6 +317,12 @@ namespace EmuWarface.Xmpp.Query
                     target.Profile.Experience += res_exp;
                     target.Profile.GameMoney += res_game_money;
 
+                    // Pontos de fornecedor: o valor ja vinha sendo calculado logo
+                    // acima, a partir do SponsorPointsMultiplier do gamedata, mas
+                    // era descartado. Agora e guardado no perfil, que e o que faz
+                    // a aba VENDORS avancar conforme se joga.
+                    target.Profile.AddSponsorPoints(res_sp_points);
+
                     //БОНУС
                     target.Profile.CryMoney += 100;
                     target.Profile.GiveRandomBoxCards();
@@ -335,7 +341,7 @@ namespace EmuWarface.Xmpp.Query
                         .Attr("nickname", target.Profile.Nickname)
                         .Attr("money", res_game_money)
                         .Attr("experience", res_exp)
-                        .Attr("sponsor_points",             /*res_sp_points*/ "0") //TODO
+                        .Attr("sponsor_points",             res_sp_points)
                         .Attr("clan_points", res_clan_points)
                         .Attr("gained_crown_money", res_crown)
                         .Attr("bonus_money",                /*res_bonus_money*/"0")             //TODO

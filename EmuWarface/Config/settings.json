@@ -9,5 +9,10 @@
 	"certSecret": "n1kodim",
 	"xmpp_debug": true,
 	"xmpp_debug_console": true,
-	"use_online_protect": false
+	"use_online_protect": false,
+	"sponsors": {
+		"unlock_all": false,
+		"unlock_all_points": 999999,
+		"starting_points": 0
+	}
 }

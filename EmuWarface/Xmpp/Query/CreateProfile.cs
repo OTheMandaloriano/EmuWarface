@@ -65,12 +65,9 @@ namespace EmuWarface.Xmpp.Query
 
             client.Profile.Items.ForEach(item => character.Child(item.Serialize()));
 
-            //TODO sponsors
-            XmlElement sponsor_info = Xml.Element("sponsor_info");
-            sponsor_info.Child(Xml.Element("sponsor").Attr("sponsor_id", "0").Attr("sponsor_points", "0").Attr("next_unlock_item", ""));
-            sponsor_info.Child(Xml.Element("sponsor").Attr("sponsor_id", "1").Attr("sponsor_points", "0").Attr("next_unlock_item", ""));
-            sponsor_info.Child(Xml.Element("sponsor").Attr("sponsor_id", "2").Attr("sponsor_points", "0").Attr("next_unlock_item", ""));
-            character.Child(sponsor_info);
+            // Fornecedores (VENDORS): tudo liberado ou progressao real, conforme
+            // settings.json > sponsors. Ver Profile.SponsorsSerialize().
+            character.Child(client.Profile.SponsorsSerialize());
 
             character.Child(Xml.Element("chat_channels").Child(Xml.Element("chat").Attr("channel", "0").Attr("channel_id", "global." + channel.Resource).Attr("service_id", "conference.warface")));
 

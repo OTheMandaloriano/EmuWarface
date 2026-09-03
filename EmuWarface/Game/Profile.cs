@@ -440,6 +440,101 @@ namespace EmuWarface.Game
                 .Attr("class_unlocked", "31");
         }
 
+        /// <summary>
+        /// Monta o bloco &lt;sponsor_info&gt; que o cliente usa pra desenhar a aba
+        /// VENDORS (Fornecedores).
+        ///
+        /// Com "unlock_all": true no settings.json, todos os tres fornecedores
+        /// recebem o mesmo valor alto (unlock_all_points) e o jogo mostra tudo
+        /// liberado. Com false, cada fornecedor devolve os pontos que aquele
+        /// perfil realmente tem na tabela emu_sponsors - e o jogador vai
+        /// desbloqueando conforme joga, como no jogo original.
+        /// </summary>
+        public XmlElement SponsorsSerialize()
+        {
+            XmlElement sponsor_info = Xml.Element("sponsor_info");
+            var cfg = Config.Settings.Sponsors;
+
+            // Sem a secao "sponsors" no settings.json, mantem o comportamento
+            // antigo (zero pontos) em vez de quebrar o servidor.
+            if (cfg == null)
+            {
+                for (int id = 0; id < 3; id++)
+                    sponsor_info.Child(Xml.Element("sponsor")
+                        .Attr("sponsor_id", id)
+                        .Attr("sponsor_points", 0)
+                        .Attr("next_unlock_item", ""));
+
+                return sponsor_info;
+            }
+
+            if (cfg.UnlockAll)
+            {
+                for (int id = 0; id < 3; id++)
+                    sponsor_info.Child(Xml.Element("sponsor")
+                        .Attr("sponsor_id", id)
+                        .Attr("sponsor_points", cfg.UnlockAllPoints)
+                        .Attr("next_unlock_item", ""));
+
+                return sponsor_info;
+            }
+
+            // Progressao de verdade: le o que esta guardado pra este perfil.
+            var pontos = new int[3];
+            var proximo = new string[3] { "", "", "" };
+
+            DataTable db = SQL.QueryRead($"SELECT * FROM emu_sponsors WHERE profile_id={Id}");
+
+            foreach (DataRow row in db.Rows)
+            {
+                int id = Convert.ToInt32(row["sponsor_id"]);
+                if (id < 0 || id > 2)
+                    continue;
+
+                pontos[id] = Convert.ToInt32(row["sponsor_points"]);
+                proximo[id] = row["next_unlock_item"].ToString();
+            }
+
+            // Perfil antigo, criado antes desta tabela existir: cria as linhas
+            // agora com os pontos iniciais, pra nao ficar sem fornecedor nenhum.
+            if (db.Rows.Count == 0)
+            {
+                for (int id = 0; id < 3; id++)
+                {
+                    pontos[id] = cfg.StartingPoints;
+                    SQL.Query($"INSERT INTO emu_sponsors (`profile_id`, `sponsor_id`, `sponsor_points`, `next_unlock_item`) VALUES ({Id}, {id}, {cfg.StartingPoints}, '');");
+                }
+            }
+
+            for (int id = 0; id < 3; id++)
+                sponsor_info.Child(Xml.Element("sponsor")
+                    .Attr("sponsor_id", id)
+                    .Attr("sponsor_points", pontos[id])
+                    .Attr("next_unlock_item", proximo[id]));
+
+            return sponsor_info;
+        }
+
+        /// <summary>
+        /// Soma pontos de fornecedor a este perfil, ao fim de uma partida.
+        ///
+        /// Os pontos vao para os tres fornecedores. O jogo original deixa
+        /// escolher a qual deles o esforco se aplica, mas o cliente nao envia
+        /// essa escolha nas mensagens que o emulador recebe; dividir por um so
+        /// exigiria adivinhar. Somar nos tres mantem o ritmo de progressao
+        /// previsivel e nao trava ninguem num fornecedor errado.
+        ///
+        /// Acumula mesmo com unlock_all ligado: assim quem experimenta o modo
+        /// liberado e depois volta pra progressao encontra o que ja tinha.
+        /// </summary>
+        public void AddSponsorPoints(int pontos)
+        {
+            if (pontos <= 0)
+                return;
+
+            SQL.Query($"UPDATE emu_sponsors SET sponsor_points = sponsor_points + {pontos} WHERE profile_id={Id};");
+        }
+
         public XmlElement ResyncProfie()
         {
             XmlElement resync_profile = Xml.Element("resync_profile");
@@ -519,9 +614,11 @@ namespace EmuWarface.Game
 
             SQL.Query($"INSERT INTO emu_profile_progression_state (`profile_id`) VALUES ({profile_id});");
             SQL.Query($"INSERT INTO emu_pvp_rating (`profile_id`) VALUES ({profile_id});");
-            SQL.Query($"INSERT INTO emu_sponsors (`profile_id`, `sponsor_id`, `sponsor_points`, `next_unlock_item`) VALUES ({profile_id}, 0, 0, '');");
-            SQL.Query($"INSERT INTO emu_sponsors (`profile_id`, `sponsor_id`, `sponsor_points`, `next_unlock_item`) VALUES ({profile_id}, 1, 0, '');");
-            SQL.Query($"INSERT INTO emu_sponsors (`profile_id`, `sponsor_id`, `sponsor_points`, `next_unlock_item`) VALUES ({profile_id}, 2, 0, '');");
+            // Pontos com que um perfil novo comeca (settings.json > sponsors > starting_points).
+            int sponsorInicial = Config.Settings.Sponsors != null ? Config.Settings.Sponsors.StartingPoints : 0;
+            SQL.Query($"INSERT INTO emu_sponsors (`profile_id`, `sponsor_id`, `sponsor_points`, `next_unlock_item`) VALUES ({profile_id}, 0, {sponsorInicial}, '');");
+            SQL.Query($"INSERT INTO emu_sponsors (`profile_id`, `sponsor_id`, `sponsor_points`, `next_unlock_item`) VALUES ({profile_id}, 1, {sponsorInicial}, '');");
+            SQL.Query($"INSERT INTO emu_sponsors (`profile_id`, `sponsor_id`, `sponsor_points`, `next_unlock_item`) VALUES ({profile_id}, 2, {sponsorInicial}, '');");
 
             //TODO CreateProfile
             //insert SPONSOR

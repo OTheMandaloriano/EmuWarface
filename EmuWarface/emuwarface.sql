@@ -1,4 +1,4 @@
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+﻿/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
@@ -286,7 +286,7 @@ CREATE TABLE IF NOT EXISTS `emu_pvp_rating` (
 CREATE TABLE IF NOT EXISTS `emu_sponsors` (
   `profile_id` bigint(20) unsigned NOT NULL,
   `sponsor_id` tinyint(3) unsigned NOT NULL,
-  `sponsor_points` tinyint(3) unsigned NOT NULL,
+  `sponsor_points` int(10) unsigned NOT NULL,
   `next_unlock_item` varchar(64) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

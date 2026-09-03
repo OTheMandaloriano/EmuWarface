@@ -110,6 +110,24 @@ namespace EmuWarface
         public bool XmppDebugConsole { get; set; }
         [JsonProperty("use_online_protect")]
         public bool UseOnlineProtect { get; set; }
+        [JsonProperty("sponsors")]
+        public SponsorsConfig Sponsors { get; set; }
+    }
+
+    /// <summary>
+    /// Controla a progressao dos fornecedores (a aba VENDORS do jogo).
+    /// unlock_all = true  -> todo mundo entra com pontos de sobra e ve tudo liberado.
+    /// unlock_all = false -> cada perfil usa os pontos guardados na tabela emu_sponsors,
+    ///                       que e como o jogo original funciona.
+    /// </summary>
+    public class SponsorsConfig
+    {
+        [JsonProperty("unlock_all")]
+        public bool UnlockAll { get; set; }
+        [JsonProperty("unlock_all_points")]
+        public int UnlockAllPoints { get; set; }
+        [JsonProperty("starting_points")]
+        public int StartingPoints { get; set; }
     }
 
     public class GameRoomConfig
