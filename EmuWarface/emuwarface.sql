@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS `emu_profile_progression_state` (
   `profile_id` bigint(20) unsigned NOT NULL,
   `mission_unlocked` varchar(600) NOT NULL DEFAULT 'trainingmission,easymission,normalmission,hardmission,zombieeasy,zombienormal,zombiehard,survivalmission,campaignsections,campaignsection1,campaignsection2,campaignsection3,volcanoeasy,volcanonormal,volcanohard,volcanosurvival,anubiseasy,anubisnormal,anubishard,anubiseasy2,anubisnormal2,anubishard2,zombietowereasy,zombietowernormal,zombietowerhard,icebreakereasy,icebreakernormal,icebreakerhard,chernobyleasy,chernobylnormal,chernobylhard,japaneasy,japannormal,japanhard,marseasy,marsnormal,marshard,blackwood,pve_arena',
   `tutorial_unlocked` tinyint(3) unsigned NOT NULL DEFAULT 1,
-  `tutorial_passed` tinyint(2) unsigned NOT NULL DEFAULT 1,
+  `tutorial_passed` tinyint(2) unsigned NOT NULL DEFAULT 0,
   `class_unlocked` tinyint(2) unsigned NOT NULL DEFAULT 31,
   PRIMARY KEY (`profile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

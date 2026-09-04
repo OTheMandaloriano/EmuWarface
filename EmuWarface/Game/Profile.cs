@@ -292,11 +292,23 @@ namespace EmuWarface.Game
 
         public void GiveRatingBonus(int rank)
         {
+            GiveSpecialReward("rating_level_" + rank + "_achieved");
+        }
+
+        /// <summary>
+        /// Entrega uma recompensa nomeada do special_reward_configuration.
+        ///
+        /// E o mesmo mecanismo que o bonus de rating ja usava, so que agora
+        /// serve qualquer evento - por exemplo tutorial_1_completed, que da
+        /// 3000 WF$ e duas pecas de equipamento.
+        /// </summary>
+        public void GiveSpecialReward(string eventName)
+        {
             var config = QueryCache.GetCache("get_configs").Data;
 
             foreach (XmlElement @event in config["special_reward_configuration"].ChildNodes)
             {
-                if (@event.GetAttribute("name") == "rating_level_" + rank + "_achieved")
+                if (@event.GetAttribute("name") == eventName)
                 {
                     foreach (XmlElement reward in @event.ChildNodes)
                     {
@@ -430,14 +442,71 @@ namespace EmuWarface.Game
                 .Attr("crown_money",    CrownMoney);
         }
 
+        /// <summary>
+        /// Estado de progressao do perfil: missoes abertas, tutoriais feitos
+        /// e classes liberadas.
+        ///
+        /// Antes devolvia tudo fixo, inclusive tutorial_passed=1 - o jogo
+        /// entendia que os tres tutoriais ja tinham sido feitos e o jogador
+        /// nunca recebia as recompensas deles (3000 WF$ e duas pecas cada).
+        /// Agora le da tabela emu_profile_progression_state, que ja existia e
+        /// ja era preenchida na criacao do perfil.
+        /// </summary>
         public XmlElement ProgressionSerialize()
         {
+            const string missoesPadrao = "trainingmission,easymission,normalmission,hardmission,zombieeasy,zombienormal,zombiehard,survivalmission,campaignsections,campaignsection1,campaignsection2,campaignsection3,volcanoeasy,volcanonormal,volcanohard,volcanosurvival,anubiseasy,anubisnormal,anubishard,anubiseasy2,anubisnormal2,anubishard2,zombietowereasy,zombietowernormal,zombietowerhard,icebreakereasy,icebreakernormal,icebreakerhard,chernobyleasy,chernobylnormal,chernobylhard,japaneasy,japannormal,japanhard,marseasy,marsnormal,marshard,blackwood,pve_arena";
+
+            string missoes = missoesPadrao;
+            int tutorialAberto = 1, tutorialFeito = 0, classes = 31;
+
+            DataTable db = SQL.QueryRead($"SELECT * FROM emu_profile_progression_state WHERE profile_id={Id}");
+
+            if (db.Rows.Count > 0)
+            {
+                var row = db.Rows[0];
+                var m = row["mission_unlocked"].ToString();
+                if (!string.IsNullOrWhiteSpace(m))
+                    missoes = m;
+
+                tutorialAberto = Convert.ToInt32(row["tutorial_unlocked"]);
+                tutorialFeito  = Convert.ToInt32(row["tutorial_passed"]);
+                classes        = Convert.ToInt32(row["class_unlocked"]);
+            }
+
             return Xml.Element("profile_progression_state")
                 .Attr("profile_id", Id)
-                .Attr("mission_unlocked", "trainingmission,easymission,normalmission,hardmission,zombieeasy,zombienormal,zombiehard,survivalmission,campaignsections,campaignsection1,campaignsection2,campaignsection3,volcanoeasy,volcanonormal,volcanohard,volcanosurvival,anubiseasy,anubisnormal,anubishard,anubiseasy2,anubisnormal2,anubishard2,zombietowereasy,zombietowernormal,zombietowerhard,icebreakereasy,icebreakernormal,icebreakerhard,chernobyleasy,chernobylnormal,chernobylhard,japaneasy,japannormal,japanhard,marseasy,marsnormal,marshard,blackwood,pve_arena")
-                .Attr("tutorial_unlocked", "1")
-                .Attr("tutorial_passed", "1")
-                .Attr("class_unlocked", "31");
+                .Attr("mission_unlocked", missoes)
+                .Attr("tutorial_unlocked", tutorialAberto)
+                .Attr("tutorial_passed", tutorialFeito)
+                .Attr("class_unlocked", classes);
+        }
+
+        /// <summary>
+        /// Marca um tutorial como concluido e entrega a recompensa dele.
+        /// Devolve false se aquele tutorial ja tinha sido feito, para nao
+        /// premiar duas vezes.
+        ///
+        /// tutorial_passed guarda um bit por tutorial: 1 = primeiro,
+        /// 2 = segundo, 4 = terceiro.
+        /// </summary>
+        public bool CompleteTutorial(int tutorialId)
+        {
+            if (tutorialId < 0 || tutorialId > 2)
+                return false;
+
+            int bit = 1 << tutorialId;
+
+            DataTable db = SQL.QueryRead($"SELECT tutorial_passed FROM emu_profile_progression_state WHERE profile_id={Id}");
+            int feitos = db.Rows.Count > 0 ? Convert.ToInt32(db.Rows[0]["tutorial_passed"]) : 0;
+
+            if ((feitos & bit) != 0)
+                return false;
+
+            feitos |= bit;
+            SQL.Query($"UPDATE emu_profile_progression_state SET tutorial_passed={feitos} WHERE profile_id={Id};");
+
+            GiveSpecialReward($"tutorial_{tutorialId + 1}_completed");
+            return true;
         }
 
         /// <summary>
