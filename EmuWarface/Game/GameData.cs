@@ -62,9 +62,37 @@ namespace EmuWarface.Game
             RandomBoxCards          = Xml.Load(GameDataConfig.RANDOM_BOX_CARDS);
         }
 
-        public static void LoadCharacterMap(string language = "Russian")
+        /// <summary>
+        /// Carrega as letras aceitas em apelido, nome de cla e chat.
+        ///
+        /// O idioma vem do settings.json. Sem ele o padrao continua sendo
+        /// "Russian", que era o comportamento anterior - mas atencao: esse
+        /// preset so aceita cirilico e numeros, entao um apelido em letras
+        /// latinas e recusado na criacao do personagem. Para servidor em
+        /// portugues, use "BrazilianPortuguese".
+        ///
+        /// Se o idioma pedido nao existir no charactermap.xml, o servidor
+        /// avisa e cai no russo, em vez de subir sem nenhuma letra valida
+        /// (o que recusaria qualquer nome).
+        /// </summary>
+        public static void LoadCharacterMap(string language = null)
         {
             var map = Xml.Load(GameDataConfig.CHAR_MAP_CONFIGURATION);
+
+            if (string.IsNullOrWhiteSpace(language))
+                language = string.IsNullOrWhiteSpace(Config.Settings.Language) ? "Russian" : Config.Settings.Language;
+
+            bool encontrado = false;
+            foreach (XmlElement lang in map.ChildNodes)
+            {
+                if (lang.GetAttribute("name") == language) { encontrado = true; break; }
+            }
+
+            if (!encontrado)
+            {
+                Log.Error("[GameData] Language '{0}' not found in charactermap.xml, falling back to 'Russian'", language);
+                language = "Russian";
+            }
 
             foreach(XmlElement lang in map.ChildNodes)
             {

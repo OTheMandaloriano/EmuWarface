@@ -112,6 +112,15 @@ namespace EmuWarface
         public bool UseOnlineProtect { get; set; }
         [JsonProperty("sponsors")]
         public SponsorsConfig Sponsors { get; set; }
+        /// <summary>
+        /// Idioma usado para validar apelido, nome de cla e texto de chat.
+        /// Precisa ser um dos &lt;language&gt; de GameData/config/masterserver/
+        /// charactermap.xml. "Russian" so aceita cirilico e numeros, entao um
+        /// nome em letras latinas e recusado; "BrazilianPortuguese" e
+        /// "English" aceitam A-Z e a-z.
+        /// </summary>
+        [JsonProperty("language")]
+        public string Language { get; set; }
     }
 
     /// <summary>
